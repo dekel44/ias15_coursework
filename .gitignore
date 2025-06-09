@@ -1,0 +1,6 @@
+rebound.js
+rebound.wasm
+*.o
+*.a
+ias15_test
+node_modules/

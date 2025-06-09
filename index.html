@@ -1,0 +1,113 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>IAS15 Figure-8 Demo</title>
+  <style>
+    body { margin:0; background:#222; color:#eee; font-family:sans-serif }
+    #controls { padding:8px; background:#333; display:flex; align-items:center; gap:12px }
+    #controls label { display:flex; flex-direction:column; font-size:14px }
+    #controls input[type=number] { width:60px }
+    #controls button { padding:6px 12px; }
+    canvas { display:block; width:100vw; height:calc(100vh - 56px) }
+  </style>
+</head>
+<body>
+
+  <div id="controls">
+    <label>Mass 0<input id="m0" type="number" value="1" step="0.1" /></label>
+    <label>Mass 1<input id="m1" type="number" value="1" step="0.1" /></label>
+    <label>Mass 2<input id="m2" type="number" value="1" step="0.1" /></label>
+    <button id="update">Update Bodies</button>
+    <button id="start">Start</button>
+    <button id="pause">Pause</button>
+    <button id="step">Step</button>
+  </div>
+
+  <canvas id="cv"></canvas>
+
+  <script>
+  var Module = {
+    onRuntimeInitialized: function() {
+      this.initialize  = this.cwrap('initialize_simulation','void',[]);
+      this.stepSim     = this.cwrap('step_simulation','void',['number']);
+      this.getPosPtr   = this.cwrap('get_positions','number',[]);
+      this.setBody     = this.cwrap('set_body','void',['number','number','number','number','number','number','number','number']);
+      // initialize and draw initial state
+      this.initialize();
+      drawBodies();
+    }
+  };
+  </script>
+  <script src="rebound.js"></script>
+  <script>
+    const canvas = document.getElementById('cv');
+    const ctx    = canvas.getContext('2d');
+    let running  = false;
+    const dt      = 0.01;
+    const scale   = 200;
+
+    function resize() {
+      canvas.width  = window.innerWidth;
+      canvas.height = window.innerHeight - document.getElementById('controls').offsetHeight;
+    }
+    window.addEventListener('resize',resize);
+    resize();
+
+    function drawBodies() {
+      // pull positions out of WASM heap…
+      const ptr = Module.getPosPtr();
+      const pts = [];
+      for(let i=0;i<3;i++){
+        const x = Module.getValue(ptr + (i*3+0)*8,'double');
+        const y = Module.getValue(ptr + (i*3+1)*8,'double');
+        pts.push({x,y});
+      }
+
+      ctx.fillStyle = '#000';
+      ctx.fillRect(0,0,canvas.width,canvas.height);
+
+      ['red','green','blue'].forEach((c,i)=>{
+        ctx.fillStyle = c;
+        ctx.beginPath();
+        ctx.arc(
+          canvas.width/2 + pts[i].x*scale,
+          canvas.height/2 - pts[i].y*scale,
+          6,0,2*Math.PI
+        );
+        ctx.fill();
+      });
+    }
+
+    function loop() {
+      if(!running) return;
+      Module.stepSim(dt);
+      drawBodies();
+      setTimeout(loop, 16);
+    }
+
+    document.getElementById('start').onclick = () => {
+      if(!running){
+        running = true;
+        loop();
+      }
+    };
+    document.getElementById('pause').onclick = () => { running = false; };
+    document.getElementById('step').onclick  = () => {
+      Module.stepSim(dt);
+      drawBodies();
+    };
+    document.getElementById('update').onclick = () => {
+      [0,1,2].forEach(i => {
+        const m = parseFloat(document.getElementById('m'+i).value);
+        // keep x,y,z=0,0,0 and vx,vy,vz unchanged:
+        const ptr = Module.getPosPtr();
+        const x = Module.getValue(ptr + (i*3+0)*8,'double');
+        const y = Module.getValue(ptr + (i*3+1)*8,'double');
+        Module.setBody(i,m,x,y,0,0,0,0);
+      });
+      drawBodies();
+    };
+  </script>
+</body>
+</html>
