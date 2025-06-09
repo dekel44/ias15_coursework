@@ -18,7 +18,6 @@
     <label>Mass 0<input id="m0" type="number" value="1" step="0.1" /></label>
     <label>Mass 1<input id="m1" type="number" value="1" step="0.1" /></label>
     <label>Mass 2<input id="m2" type="number" value="1" step="0.1" /></label>
-    <button id="update">Update Bodies</button>
     <button id="start">Start</button>
     <button id="pause">Pause</button>
     <button id="step">Step</button>
@@ -97,17 +96,32 @@
       Module.stepSim(dt);
       drawBodies();
     };
-    document.getElementById('update').onclick = () => {
-      [0,1,2].forEach(i => {
-        const m = parseFloat(document.getElementById('m'+i).value);
-        // keep x,y,z=0,0,0 and vx,vy,vz unchanged:
-        const ptr = Module.getPosPtr();
-        const x = Module.getValue(ptr + (i*3+0)*8,'double');
-        const y = Module.getValue(ptr + (i*3+1)*8,'double');
-        Module.setBody(i,m,x,y,0,0,0,0);
-      });
+    // Automatically update bodies when mass inputs change
+    function updateBodies() {
+      const ptr = Module.getPosPtr();
+      for (let i = 0; i < 3; i++) {
+        const input = document.getElementById('m' + i);
+        const mStr = input.value.trim();
+        // if input is blank or not a number, skip updating that body
+        if (mStr === '') continue;
+        const m = parseFloat(mStr);
+        if (isNaN(m)) continue;
+        // fetch current positions
+        const x = Module.getValue(ptr + (i*3 + 0) * 8, 'double');
+        const y = Module.getValue(ptr + (i*3 + 1) * 8, 'double');
+        // update mass (positions remain unchanged), then redraw
+        Module.setBody(i, m, x, y, 0, 0, 0, 0);
+      }
       drawBodies();
-    };
+    }
+    ['m0','m1','m2'].forEach(id => {
+      const el = document.getElementById(id);
+      // Update when the field loses focus or on Enter key
+      el.addEventListener('change', updateBodies);
+      el.addEventListener('keyup', e => {
+        if (e.key === 'Enter') updateBodies();
+      });
+    });
   </script>
 </body>
 </html>
