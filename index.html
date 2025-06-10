@@ -2,41 +2,131 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <title>IAS15 Figure-8 Demo</title>
+  <title>Three-Body Problem Simulation</title>
   <style>
-    body { margin:0; background:#222; color:#eee; font-family:sans-serif }
-    #controls { padding:8px; background:#333; display:flex; align-items:center; gap:12px }
-    #controls label { display:flex; flex-direction:column; font-size:14px }
-    #controls input[type=number] { width:60px }
-    #controls button { padding:6px 12px; }
-    canvas { display:block; width:100vw; height:calc(100vh - 56px) }
+    body { margin:0; background:#f0f0f0; font-family:sans-serif; height:100vh; display:flex; flex-direction:column; }
+    header { background:#2c3e50; color:#ecf0f1; padding:12px 16px; font-size:1.25em; }
+    #main { flex:1; display:flex; overflow:hidden; }
+    #controls { width:260px; background:#ecf0f1; padding:16px; box-shadow:2px 0 5px rgba(0,0,0,0.1); display:flex; flex-direction:column; gap:16px; overflow-y:auto; }
+    .body-control { background:#fff; border:1px solid #ccc; padding:12px; }
+    .body-control h3 { margin:0 0 8px; font-size:1em; }
+    .body-control label { display:block; margin-bottom:6px; font-size:0.9em; }
+    .xyz-group { display:flex; gap:4px; margin-bottom:8px; }
+    .xyz-group input { width:60px; }
+    #preset-config { margin-top:auto; display:flex; align-items:center; justify-content:space-between; }
+    #canvas-container { flex:1; position:relative; background:#fff; }
+    #cv { width:100%; height:100%; display:block; }
+    #toggle-traj { position:absolute; top:12px; right:12px; padding:6px 12px; background:#3498db; color:#fff; border:none; cursor:pointer; }
+    #info-panel { width:220px; background:#ecf0f1; padding:16px; box-shadow:-2px 0 5px rgba(0,0,0,0.1); display:flex; flex-direction:column; }
+    .tabs { display:flex; gap:8px; margin-bottom:12px; }
+    .tabs button { flex:1; padding:8px; border:1px solid #ccc; background:#bdc3c7; cursor:pointer; }
+    .tabs button.active { background:#ecf0f1; }
+    #tab-content { flex:1; overflow-y:auto; }
+    #tab-content h3 { margin:12px 0 4px; }
+    #sim-controls { background:#34495e; padding:8px; display:flex; align-items:center; gap:12px; color:#ecf0f1; }
+    #sim-controls button { background:#2980b9; color:#ecf0f1; border:none; padding:6px 12px; cursor:pointer; }
+    #sim-controls label { font-size:0.9em; display:flex; align-items:center; gap:4px; }
+    #sim-controls input[type="range"] { width:120px; }
   </style>
 </head>
 <body>
-
-  <div id="controls">
-    <label>Mass 0<input id="m0" type="number" value="1" step="0.1" /></label>
-    <label>Mass 1<input id="m1" type="number" value="1" step="0.1" /></label>
-    <label>Mass 2<input id="m2" type="number" value="1" step="0.1" /></label>
-    <button id="start">Start</button>
-    <button id="pause">Pause</button>
-    <button id="step">Step</button>
+  <header>Three-Body Problem Simulation</header>
+  <div id="main">
+    <div id="controls">
+      <div class="body-control">
+        <h3>Body 1</h3>
+        <label>Mass: <input id="m0" type="number" value="1" step="0.1" /></label>
+        <label>Position:</label>
+        <div class="xyz-group">
+          <input id="x0" type="number" placeholder="X" step="0.1" />
+          <input id="y0" type="number" placeholder="Y" step="0.1" />
+          <input id="z0" type="number" placeholder="Z" step="0.1" />
+        </div>
+        <label>Velocity:</label>
+        <div class="xyz-group">
+          <input id="vx0" type="number" placeholder="X" step="0.1" />
+          <input id="vy0" type="number" placeholder="Y" step="0.1" />
+          <input id="vz0" type="number" placeholder="Z" step="0.1" />
+        </div>
+        <label>Color: <input id="c0" type="color" value="#e74c3c" /></label>
+      </div>
+      <div class="body-control">
+        <h3>Body 2</h3>
+        <label>Mass: <input id="m1" type="number" value="1" step="0.1" /></label>
+        <label>Position:</label>
+        <div class="xyz-group">
+          <input id="x1" type="number" placeholder="X" step="0.1" />
+          <input id="y1" type="number" placeholder="Y" step="0.1" />
+          <input id="z1" type="number" placeholder="Z" step="0.1" />
+        </div>
+        <label>Velocity:</label>
+        <div class="xyz-group">
+          <input id="vx1" type="number" placeholder="X" step="0.1" />
+          <input id="vy1" type="number" placeholder="Y" step="0.1" />
+          <input id="vz1" type="number" placeholder="Z" step="0.1" />
+        </div>
+        <label>Color: <input id="c1" type="color" value="#2ecc71" /></label>
+      </div>
+      <div class="body-control">
+        <h3>Body 3</h3>
+        <label>Mass: <input id="m2" type="number" value="1" step="0.1" /></label>
+        <label>Position:</label>
+        <div class="xyz-group">
+          <input id="x2" type="number" placeholder="X" step="0.1" />
+          <input id="y2" type="number" placeholder="Y" step="0.1" />
+          <input id="z2" type="number" placeholder="Z" step="0.1" />
+        </div>
+        <label>Velocity:</label>
+        <div class="xyz-group">
+          <input id="vx2" type="number" placeholder="X" step="0.1" />
+          <input id="vy2" type="number" placeholder="Y" step="0.1" />
+          <input id="vz2" type="number" placeholder="Z" step="0.1" />
+        </div>
+        <label>Color: <input id="c2" type="color" value="#f1c40f" /></label>
+      </div>
+      <div id="preset-config">
+        <button id="prev-preset">◀</button>
+        <span>Figure-8 Configuration</span>
+        <button id="next-preset">▶</button>
+      </div>
+    </div>
+    <div id="canvas-container">
+      <canvas id="cv"></canvas>
+      <button id="toggle-traj">Trajectories</button>
+    </div>
+    <div id="info-panel">
+      <div class="tabs">
+        <button id="tab-education" class="active">Education</button>
+        <button id="tab-data">Data</button>
+      </div>
+      <div id="tab-content">
+        <h3>The Three-Body Problem</h3>
+        <p>Description</p>
+        <h3>Mathematical Background</h3>
+        <p>Description</p>
+      </div>
+    </div>
+  </div>
+  <div id="sim-controls">
+    <button id="play-pause">Play/Pause</button>
+    <button id="reset">Reset</button>
+    <label>Speed <input id="speed" type="range" min="0.1" max="5" step="0.1" value="1"></label>
+    <button id="export">Export Data</button>
+    <button id="help">Help</button>
   </div>
 
-  <canvas id="cv"></canvas>
-
+  <!-- WASM and Simulation Scripts -->
   <script>
-  var Module = {
-    onRuntimeInitialized: function() {
-      this.initialize  = this.cwrap('initialize_simulation','void',[]);
-      this.stepSim     = this.cwrap('step_simulation','void',['number']);
-      this.getPosPtr   = this.cwrap('get_positions','number',[]);
-      this.setBody     = this.cwrap('set_body','void',['number','number','number','number','number','number','number','number']);
-      // initialize and draw initial state
-      this.initialize();
-      drawBodies();
-    }
-  };
+    var Module = {
+      onRuntimeInitialized: function() {
+        Module.initialize = Module.cwrap('initialize_simulation','void',[]);
+        Module.stepSim    = Module.cwrap('step_simulation','void',['number']);
+        Module.getPosPtr  = Module.cwrap('get_positions','number',[]);
+        Module.setBody    = Module.cwrap('set_body','void',['number','number','number','number','number','number','number','number']);
+        Module.initialize();
+        drawBodies();
+      }
+    };
   </script>
   <script src="rebound.js"></script>
   <script>
@@ -44,84 +134,130 @@
     const ctx    = canvas.getContext('2d');
     let running  = false;
     const dt      = 0.01;
-    const scale   = 200;
+    let speed     = 1;
+
+    // Trajectory storage for each body
+    const trajectories = [[], [], []];
 
     function resize() {
-      canvas.width  = window.innerWidth;
-      canvas.height = window.innerHeight - document.getElementById('controls').offsetHeight;
+      const leftW  = document.getElementById('controls').offsetWidth;
+      const rightW = document.getElementById('info-panel').offsetWidth;
+      const botH   = document.getElementById('sim-controls').offsetHeight;
+      const headH  = document.querySelector('header').offsetHeight;
+      canvas.width  = window.innerWidth - leftW - rightW;
+      canvas.height = window.innerHeight - botH - headH;
     }
-    window.addEventListener('resize',resize);
+    window.addEventListener('resize', resize);
     resize();
 
     function drawBodies() {
-      // pull positions out of WASM heap…
       const ptr = Module.getPosPtr();
       const pts = [];
-      for(let i=0;i<3;i++){
-        const x = Module.getValue(ptr + (i*3+0)*8,'double');
-        const y = Module.getValue(ptr + (i*3+1)*8,'double');
-        pts.push({x,y});
+      for (let i=0; i<3; i++) {
+        const x = Module.getValue(ptr + (i*3+0)*8, 'double');
+        const y = Module.getValue(ptr + (i*3+1)*8, 'double');
+        pts.push({ x, y });
       }
-
-      ctx.fillStyle = '#000';
-      ctx.fillRect(0,0,canvas.width,canvas.height);
-
-      ['red','green','blue'].forEach((c,i)=>{
+      ctx.clearRect(0,0,canvas.width,canvas.height);
+      // Render trajectories
+      trajectories.forEach((traj, i) => {
+        if (traj.length > 1) {
+          ctx.strokeStyle = ['#e74c3c','#2ecc71','#f1c40f'][i];
+          ctx.beginPath();
+          traj.forEach((pt, idx) => {
+            const x = canvas.width/2 + pt.x*200;
+            const y = canvas.height/2 - pt.y*200;
+            if (idx === 0) ctx.moveTo(x, y);
+            else ctx.lineTo(x, y);
+          });
+          ctx.stroke();
+        }
+      });
+      // Append current positions to trajectories
+      pts.forEach((pt, i) => {
+        trajectories[i].push({ x: pt.x, y: pt.y });
+        // Optional: limit trajectory length
+        if (trajectories[i].length > 1000) trajectories[i].shift();
+      });
+      ['#e74c3c','#2ecc71','#f1c40f'].forEach((c,i)=>{
         ctx.fillStyle = c;
         ctx.beginPath();
         ctx.arc(
-          canvas.width/2 + pts[i].x*scale,
-          canvas.height/2 - pts[i].y*scale,
-          6,0,2*Math.PI
+          canvas.width/2 + pts[i].x*200,
+          canvas.height/2 - pts[i].y*200,
+          6, 0, 2*Math.PI
         );
         ctx.fill();
       });
     }
 
     function loop() {
-      if(!running) return;
-      Module.stepSim(dt);
+      if (!running) return;
+      Module.stepSim(dt * speed);
       drawBodies();
-      setTimeout(loop, 16);
+      requestAnimationFrame(loop);
     }
 
-    document.getElementById('start').onclick = () => {
-      if(!running){
-        running = true;
-        loop();
-      }
+    document.getElementById('play-pause').onclick = () => {
+      running = !running;
+      if (running) loop();
     };
-    document.getElementById('pause').onclick = () => { running = false; };
-    document.getElementById('step').onclick  = () => {
-      Module.stepSim(dt);
+    document.getElementById('reset').onclick = () => {
+      Module.initialize();
       drawBodies();
+      running = false;
+      // reset input fields to initial figure-8 values
     };
-    // Automatically update bodies when mass inputs change
-    function updateBodies() {
+    document.getElementById('speed').oninput = e => {
+      speed = parseFloat(e.target.value);
+    };
+    document.getElementById('export').onclick = () => alert('Export not implemented');
+    document.getElementById('help').onclick   = () => alert('Help not implemented');
+
+    // Body parameter updates including positions and velocities
+    function updateBody(i) {
+      const m   = parseFloat(document.getElementById('m'+i).value) || 1;
+      const x   = parseFloat(document.getElementById('x'+i).value);
+      const y   = parseFloat(document.getElementById('y'+i).value);
+      const z   = parseFloat(document.getElementById('z'+i).value);
+      const vx  = parseFloat(document.getElementById('vx'+i).value);
+      const vy  = parseFloat(document.getElementById('vy'+i).value);
+      const vz  = parseFloat(document.getElementById('vz'+i).value);
+      // if any field is NaN, fallback to current sim values
       const ptr = Module.getPosPtr();
-      for (let i = 0; i < 3; i++) {
-        const input = document.getElementById('m' + i);
-        const mStr = input.value.trim();
-        // if input is blank or not a number, skip updating that body
-        if (mStr === '') continue;
-        const m = parseFloat(mStr);
-        if (isNaN(m)) continue;
-        // fetch current positions
-        const x = Module.getValue(ptr + (i*3 + 0) * 8, 'double');
-        const y = Module.getValue(ptr + (i*3 + 1) * 8, 'double');
-        // update mass (positions remain unchanged), then redraw
-        Module.setBody(i, m, x, y, 0, 0, 0, 0);
-      }
+      const curX = Module.getValue(ptr + (i*3+0)*8, 'double');
+      const curY = Module.getValue(ptr + (i*3+1)*8, 'double');
+      const curZ = 0;
+      const newX = isNaN(x) ? curX : x;
+      const newY = isNaN(y) ? curY : y;
+      const newZ = isNaN(z) ? curZ : z;
+      const newVx = isNaN(vx) ? 0 : vx;
+      const newVy = isNaN(vy) ? 0 : vy;
+      const newVz = isNaN(vz) ? 0 : vz;
+      Module.setBody(i, m, newX, newY, newZ, newVx, newVy, newVz);
       drawBodies();
     }
-    ['m0','m1','m2'].forEach(id => {
-      const el = document.getElementById(id);
-      // Update when the field loses focus or on Enter key
-      el.addEventListener('change', updateBodies);
-      el.addEventListener('keyup', e => {
-        if (e.key === 'Enter') updateBodies();
-      });
+    ['m0','x0','y0','z0','vx0','vy0','vz0',
+     'm1','x1','y1','z1','vx1','vy1','vz1',
+     'm2','x2','y2','z2','vx2','vy2','vz2']
+    .forEach(id => {
+      document.getElementById(id).addEventListener('change', () => updateBody(id.match(/\d/)[0]));
     });
+
+    // Preset and trajectory stubs
+    document.getElementById('toggle-traj').onclick = () => alert('Toggle trajectories not implemented');
+    document.getElementById('prev-preset').onclick = () => alert('Load previous preset');
+    document.getElementById('next-preset').onclick = () => alert('Load next preset');
+
+    // Tab switching
+    document.getElementById('tab-education').onclick = () => {
+      document.getElementById('tab-education').classList.add('active');
+      document.getElementById('tab-data').classList.remove('active');
+    };
+    document.getElementById('tab-data').onclick = () => {
+      document.getElementById('tab-data').classList.add('active');
+      document.getElementById('tab-education').classList.remove('active');
+    };
   </script>
 </body>
 </html>
