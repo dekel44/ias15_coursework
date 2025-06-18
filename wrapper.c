@@ -49,6 +49,17 @@ double* get_positions() {
     return positions;
 }
 
+// Return pointer to static array: [vx1,vy1,vz1, vx2,vy2,vz2, vx3,vy3,vz3]
+double* get_velocities() {
+    static double velocities[9];
+    for (int i = 0; i < 3; i++) {
+        velocities[i*3 + 0] = sim->particles[i].vx;
+        velocities[i*3 + 1] = sim->particles[i].vy;
+        velocities[i*3 + 2] = sim->particles[i].vz;
+    }
+    return velocities;
+}
+
 // Overwrite body i’s parameters and refresh the tree
 void set_body(int i,
               double m,  double x,  double y,  double z,

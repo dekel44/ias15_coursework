@@ -4,260 +4,564 @@
   <meta charset="UTF-8">
   <title>Three-Body Problem Simulation</title>
   <style>
-    body { margin:0; background:#f0f0f0; font-family:sans-serif; height:100vh; display:flex; flex-direction:column; }
-    header { background:#2c3e50; color:#ecf0f1; padding:12px 16px; font-size:1.25em; }
-    #main { flex:1; display:flex; overflow:hidden; }
-    #controls { width:260px; background:#ecf0f1; padding:16px; box-shadow:2px 0 5px rgba(0,0,0,0.1); display:flex; flex-direction:column; gap:16px; overflow-y:auto; }
-    .body-control { background:#fff; border:1px solid #ccc; padding:12px; }
-    .body-control h3 { margin:0 0 8px; font-size:1em; }
-    .body-control label { display:block; margin-bottom:6px; font-size:0.9em; }
-    .xyz-group { display:flex; gap:4px; margin-bottom:8px; }
-    .xyz-group input { width:60px; }
-    #preset-config { margin-top:auto; display:flex; align-items:center; justify-content:space-between; }
-    #canvas-container { flex:1; position:relative; background:#fff; }
-    #cv { width:100%; height:100%; display:block; }
-    #toggle-traj { position:absolute; top:12px; right:12px; padding:6px 12px; background:#3498db; color:#fff; border:none; cursor:pointer; }
-    #info-panel { width:220px; background:#ecf0f1; padding:16px; box-shadow:-2px 0 5px rgba(0,0,0,0.1); display:flex; flex-direction:column; }
-    .tabs { display:flex; gap:8px; margin-bottom:12px; }
-    .tabs button { flex:1; padding:8px; border:1px solid #ccc; background:#bdc3c7; cursor:pointer; }
-    .tabs button.active { background:#ecf0f1; }
-    #tab-content { flex:1; overflow-y:auto; }
-    #tab-content h3 { margin:12px 0 4px; }
-    #sim-controls { background:#34495e; padding:8px; display:flex; align-items:center; gap:12px; color:#ecf0f1; }
-    #sim-controls button { background:#2980b9; color:#ecf0f1; border:none; padding:6px 12px; cursor:pointer; }
-    #sim-controls label { font-size:0.9em; display:flex; align-items:center; gap:4px; }
-    #sim-controls input[type="range"] { width:120px; }
+    html, body {
+      margin: 0;
+      padding: 0;
+      height: 100%;
+      font-family: Arial, sans-serif;
+      background: #f4f4f4;
+    }
+    /* Top toolbar */
+    header {
+      background: #2c3e50;
+      color: #fff;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 12px 16px;
+      position: sticky;
+      top: 0;
+      z-index: 10;
+    }
+    header h1 {
+      margin: 0;
+      font-size: 1.2em;
+    }
+    #toolbar {
+      display: flex;
+      align-items: center;
+      gap: 16px;
+    }
+    #toolbar button {
+      background: #2980b9;
+      border: none;
+      color: #fff;
+      padding: 10px 14px;
+      font-size: 1em;
+      cursor: pointer;
+      border-radius: 4px;
+      min-width: 40px;
+    }
+    #play-pause, #reset {
+      width: 40px;
+      height: 40px;
+      padding: 0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    #toggle-traj {
+      padding: 10px 14px;
+      width: 160px;
+    }
+    #toolbar button:focus {
+      outline: 2px solid #fff;
+    }
+    #toolbar label {
+      display: flex;
+      align-items: center;
+      color: #fff;
+      gap: 6px;
+      font-size: 0.9em;
+    }
+    #toolbar input[type="range"] {
+      width: 120px;
+    }
+    .slider-label {
+      display: flex;
+      flex-direction: column;
+      align-items: flex-start;
+    }
+
+    /* Main layout */
+    #main {
+      display: flex;
+      align-items: flex-start;
+      padding: 16px;
+      box-sizing: border-box;
+    }
+    /* Left controls */
+    #controls {
+      width: 260px;
+      background: #fff;
+      border: 1px solid #ccc;
+      padding: 16px;
+      box-shadow: 2px 2px 5px rgba(0,0,0,0.1);
+    }
+    .body-control {
+      border: 1px solid #ccc;
+      padding: 12px;
+      margin-bottom: 16px;
+      background: #fafafa;
+    }
+    .body-control h3 {
+      margin: 0 0 8px;
+      font-size: 1em;
+    }
+    .body-control label {
+      display: block;
+      margin-bottom: 6px;
+      font-size: 0.9em;
+    }
+    .xyz-group {
+      display: flex;
+      gap: 4px;
+      margin-bottom: 8px;
+    }
+    .xyz-group input {
+      width: 60px;
+    }
+
+    /* Canvas area */
+    #canvas-container {
+      flex: 1;
+      margin-left: 16px;
+      background: #fff;
+      border: 1px solid #ccc;
+      position: relative;
+    }
+    #cv {
+      width: 100%;
+      height: 100%;
+      display: block;
+    }
+
+    /* Info section below */
+    #info-section {
+      background: #fff;
+      border-top: 1px solid #ccc;
+      padding: 16px;
+      margin: 16px;
+      box-shadow: 2px 2px 5px rgba(0,0,0,0.1);
+    }
+    #info-section h2 {
+      margin-top: 0;
+    }
+    #reset-icon {
+      font-size: 1.8em;
+      display: inline-block;
+      line-height: 1;
+      position: relative;
+      top: -2px;
+    }
+    
+    /* Loading indicator */
+    #loading {
+      position: fixed;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      background: rgba(0,0,0,0.8);
+      color: white;
+      padding: 20px;
+      border-radius: 8px;
+      font-size: 1.2em;
+      z-index: 1000;
+    }
   </style>
 </head>
 <body>
-  <header>Three-Body Problem Simulation</header>
+  <div id="loading">Loading WebAssembly module...</div>
+  
+  <header>
+    <h1>Three-Body Problem Simulation</h1>
+    <div id="toolbar">
+      <button id="play-pause" aria-label="Play or pause simulation">▶︎</button>
+      <button id="reset" aria-label="Reset simulation"><span id="reset-icon">⟳</span></button>
+      <div class="slider-label">
+        <span>Speed</span>
+        <input id="speed" type="range" min="0.1" max="5" step="0.1" value="1">
+      </div>
+      <div class="slider-label">
+        <span>Trajectory Length</span>
+        <input id="trail" type="range" min="0" max="200" step="5" value="50">
+      </div>
+      <button id="toggle-traj" aria-label="Show or hide trajectories">Hide Trajectories</button>
+    </div>
+  </header>
+
   <div id="main">
-    <div id="controls">
+    <aside id="controls">
+      <!-- Body 1 -->
       <div class="body-control">
         <h3>Body 1</h3>
-        <label>Mass: <input id="m0" type="number" value="1" step="0.1" /></label>
+        <label>Mass: <input id="m0" type="number" value="1" step="0.1"></label>
         <label>Position:</label>
         <div class="xyz-group">
-          <input id="x0" type="number" placeholder="X" step="0.1" />
-          <input id="y0" type="number" placeholder="Y" step="0.1" />
-          <input id="z0" type="number" placeholder="Z" step="0.1" />
+          <input id="x0" type="number" placeholder="X" step="0.1" value="-0.97000436">
+          <input id="y0" type="number" placeholder="Y" step="0.1" value="0.24308753">
+          <input id="z0" type="number" placeholder="Z" step="0.1" value="0">
         </div>
         <label>Velocity:</label>
         <div class="xyz-group">
-          <input id="vx0" type="number" placeholder="X" step="0.1" />
-          <input id="vy0" type="number" placeholder="Y" step="0.1" />
-          <input id="vz0" type="number" placeholder="Z" step="0.1" />
+          <input id="vx0" type="number" placeholder="VX" step="0.1" value="0.466203685">
+          <input id="vy0" type="number" placeholder="VY" step="0.1" value="0.43236573">
+          <input id="vz0" type="number" placeholder="VZ" step="0.1" value="0">
         </div>
-        <label>Color: <input id="c0" type="color" value="#e74c3c" /></label>
+        <label>Color: <input id="c0" type="color" value="#e74c3c"></label>
       </div>
+      <!-- Body 2 -->
       <div class="body-control">
         <h3>Body 2</h3>
-        <label>Mass: <input id="m1" type="number" value="1" step="0.1" /></label>
+        <label>Mass: <input id="m1" type="number" value="1" step="0.1"></label>
         <label>Position:</label>
         <div class="xyz-group">
-          <input id="x1" type="number" placeholder="X" step="0.1" />
-          <input id="y1" type="number" placeholder="Y" step="0.1" />
-          <input id="z1" type="number" placeholder="Z" step="0.1" />
+          <input id="x1" type="number" placeholder="X" step="0.1" value="0.97000436">
+          <input id="y1" type="number" placeholder="Y" step="0.1" value="-0.24308753">
+          <input id="z1" type="number" placeholder="Z" step="0.1" value="0">
         </div>
         <label>Velocity:</label>
         <div class="xyz-group">
-          <input id="vx1" type="number" placeholder="X" step="0.1" />
-          <input id="vy1" type="number" placeholder="Y" step="0.1" />
-          <input id="vz1" type="number" placeholder="Z" step="0.1" />
+          <input id="vx1" type="number" placeholder="VX" step="0.1" value="0.466203685">
+          <input id="vy1" type="number" placeholder="VY" step="0.1" value="0.43236573">
+          <input id="vz1" type="number" placeholder="VZ" step="0.1" value="0">
         </div>
-        <label>Color: <input id="c1" type="color" value="#2ecc71" /></label>
+        <label>Color: <input id="c1" type="color" value="#2ecc71"></label>
       </div>
+      <!-- Body 3 -->
       <div class="body-control">
         <h3>Body 3</h3>
-        <label>Mass: <input id="m2" type="number" value="1" step="0.1" /></label>
+        <label>Mass: <input id="m2" type="number" value="1" step="0.1"></label>
         <label>Position:</label>
         <div class="xyz-group">
-          <input id="x2" type="number" placeholder="X" step="0.1" />
-          <input id="y2" type="number" placeholder="Y" step="0.1" />
-          <input id="z2" type="number" placeholder="Z" step="0.1" />
+          <input id="x2" type="number" placeholder="X" step="0.1" value="0">
+          <input id="y2" type="number" placeholder="Y" step="0.1" value="0">
+          <input id="z2" type="number" placeholder="Z" step="0.1" value="0">
         </div>
         <label>Velocity:</label>
         <div class="xyz-group">
-          <input id="vx2" type="number" placeholder="X" step="0.1" />
-          <input id="vy2" type="number" placeholder="Y" step="0.1" />
-          <input id="vz2" type="number" placeholder="Z" step="0.1" />
+          <input id="vx2" type="number" placeholder="VX" step="0.1" value="-0.93240737">
+          <input id="vy2" type="number" placeholder="VY" step="0.1" value="-0.86473146">
+          <input id="vz2" type="number" placeholder="VZ" step="0.1" value="0">
         </div>
-        <label>Color: <input id="c2" type="color" value="#f1c40f" /></label>
+        <label>Color: <input id="c2" type="color" value="#f1c40f"></label>
       </div>
-      <div id="preset-config">
-        <button id="prev-preset">◀</button>
-        <span>Figure-8 Configuration</span>
-        <button id="next-preset">▶</button>
-      </div>
-    </div>
-    <div id="canvas-container">
+    </aside>
+
+    <section id="canvas-container">
       <canvas id="cv"></canvas>
-      <button id="toggle-traj">Trajectories</button>
-    </div>
-    <div id="info-panel">
-      <div class="tabs">
-        <button id="tab-education" class="active">Education</button>
-        <button id="tab-data">Data</button>
-      </div>
-      <div id="tab-content">
-        <h3>The Three-Body Problem</h3>
-        <p>Description</p>
-        <h3>Mathematical Background</h3>
-        <p>Description</p>
-      </div>
-    </div>
-  </div>
-  <div id="sim-controls">
-    <button id="play-pause">Play/Pause</button>
-    <button id="reset">Reset</button>
-    <label>Speed <input id="speed" type="range" min="0.1" max="5" step="0.1" value="1"></label>
-    <button id="export">Export Data</button>
-    <button id="help">Help</button>
+    </section>
   </div>
 
-  <!-- WASM and Simulation Scripts -->
+  <section id="info-section">
+    <h2>The Three-Body Problem</h2>
+    <p>
+      Some text.
+    </p>
+    <p>
+        Some more text.
+    </p>
+  </section>
+
   <script>
+    // Module configuration for Emscripten
     var Module = {
       onRuntimeInitialized: function() {
-        Module.initialize = Module.cwrap('initialize_simulation','void',[]);
-        Module.stepSim    = Module.cwrap('step_simulation','void',['number']);
-        Module.getPosPtr  = Module.cwrap('get_positions','number',[]);
-        Module.setBody    = Module.cwrap('set_body','void',['number','number','number','number','number','number','number','number']);
-        Module.initialize();
+        console.log("WASM module loaded successfully!");
+        
+        // Hide loading indicator
+        document.getElementById('loading').style.display = 'none';
+        
+        // Define the C function wrappers 
+        this.initialize = this.cwrap('initialize_simulation', 'void', []);
+        this.stepSim = this.cwrap('step_simulation', 'void', ['number']);
+        this.getPosPtr = this.cwrap('get_positions', 'number', []);
+        this.getVelPtr = this.cwrap('get_velocities', 'number', []);
+        this.setBody = this.cwrap('set_body', 'void', ['number', 'number', 'number', 'number', 'number', 'number', 'number', 'number']);
+        
+        // Initialize simulation
+        this.initialize();
+        
+        // Set up the simulation
+        resetTrails();
         drawBodies();
+        
+        // Enable UI controls
+        document.getElementById('play-pause').disabled = false;
+        document.getElementById('reset').disabled = false;
+      },
+      print: function(text) {
+        console.log("WASM:", text);
+      },
+      printErr: function(text) {
+        console.error("WASM Error:", text);
       }
     };
   </script>
   <script src="rebound.js"></script>
   <script>
+    // Canvas setup
     const canvas = document.getElementById('cv');
-    const ctx    = canvas.getContext('2d');
-    let running  = false;
-    const dt      = 0.01;
-    let speed     = 1;
-
-    // Trajectory storage for each body
+    const ctx = canvas.getContext('2d');
+    let running = false;
+    const dt = 0.01;
+    const scale = 150;
     const trajectories = [[], [], []];
-
-    function resize() {
-      const leftW  = document.getElementById('controls').offsetWidth;
-      const rightW = document.getElementById('info-panel').offsetWidth;
-      const botH   = document.getElementById('sim-controls').offsetHeight;
-      const headH  = document.querySelector('header').offsetHeight;
-      canvas.width  = window.innerWidth - leftW - rightW;
-      canvas.height = window.innerHeight - botH - headH;
-    }
-    window.addEventListener('resize', resize);
-    resize();
-
-    function drawBodies() {
-      const ptr = Module.getPosPtr();
-      const pts = [];
-      for (let i=0; i<3; i++) {
-        const x = Module.getValue(ptr + (i*3+0)*8, 'double');
-        const y = Module.getValue(ptr + (i*3+1)*8, 'double');
-        pts.push({ x, y });
+    let trailLen = 50;
+    let showTraj = true;
+    let speed = 1;
+    
+    // Resize canvas to fit container
+    function resizeCanvas() {
+      const container = document.getElementById('canvas-container');
+      const controlsHeight = document.getElementById('controls').offsetHeight;
+      canvas.width = container.offsetWidth;
+      canvas.height = controlsHeight;
+      if (Module.getPosPtr) {
+        drawBodies();
       }
-      ctx.clearRect(0,0,canvas.width,canvas.height);
-      // Render trajectories
-      trajectories.forEach((traj, i) => {
-        if (traj.length > 1) {
-          ctx.strokeStyle = ['#e74c3c','#2ecc71','#f1c40f'][i];
-          ctx.beginPath();
-          traj.forEach((pt, idx) => {
-            const x = canvas.width/2 + pt.x*200;
-            const y = canvas.height/2 - pt.y*200;
-            if (idx === 0) ctx.moveTo(x, y);
-            else ctx.lineTo(x, y);
-          });
-          ctx.stroke();
-        }
-      });
-      // Append current positions to trajectories
-      pts.forEach((pt, i) => {
-        trajectories[i].push({ x: pt.x, y: pt.y });
-        // Optional: limit trajectory length
-        if (trajectories[i].length > 1000) trajectories[i].shift();
-      });
-      ['#e74c3c','#2ecc71','#f1c40f'].forEach((c,i)=>{
-        ctx.fillStyle = c;
-        ctx.beginPath();
-        ctx.arc(
-          canvas.width/2 + pts[i].x*200,
-          canvas.height/2 - pts[i].y*200,
-          6, 0, 2*Math.PI
-        );
-        ctx.fill();
-      });
     }
-
+    
+    window.addEventListener('resize', resizeCanvas);
+    resizeCanvas();
+    
+    function resetTrails() {
+      trajectories.forEach(arr => arr.length = 0);
+    }
+    
+    function drawBodies() {
+      if (!Module.getPosPtr) return;
+      
+      try {
+        // Clear canvas
+        ctx.fillStyle = '#ffffff';
+        ctx.fillRect(0, 0, canvas.width, canvas.height);
+        
+        // Get positions from wasm
+        const ptr = Module.getPosPtr();
+        if (!ptr) {
+          console.error("getPosPtr returned null");
+          return;
+        }
+        
+        const positions = [];
+        for (let i = 0; i < 3; i++) {
+          const x = Module.getValue(ptr + (i*3+0)*8, 'double');
+          const y = Module.getValue(ptr + (i*3+1)*8, 'double');
+          const z = Module.getValue(ptr + (i*3+2)*8, 'double');
+          positions.push({x, y, z});
+        }
+        
+        // Get velocities if function exists
+        if (Module.getVelPtr) {
+          const velPtr = Module.getVelPtr();
+          if (velPtr) {
+            for (let i = 0; i < 3; i++) {
+              const vx = Module.getValue(velPtr + (i*3+0)*8, 'double');
+              const vy = Module.getValue(velPtr + (i*3+1)*8, 'double');
+              const vz = Module.getValue(velPtr + (i*3+2)*8, 'double');
+              
+              // Update velocity input fields if not currently focused
+              const vxInput = document.getElementById(`vx${i}`);
+              const vyInput = document.getElementById(`vy${i}`);
+              const vzInput = document.getElementById(`vz${i}`);
+              
+              if (document.activeElement !== vxInput) {
+                vxInput.value = vx.toFixed(8);
+              }
+              if (document.activeElement !== vyInput) {
+                vyInput.value = vy.toFixed(8);
+              }
+              if (document.activeElement !== vzInput) {
+                vzInput.value = vz.toFixed(8);
+              }
+            }
+          }
+        }
+        
+        // Update position input fields if not currently focused
+        for (let i = 0; i < 3; i++) {
+          const xInput = document.getElementById(`x${i}`);
+          const yInput = document.getElementById(`y${i}`);
+          const zInput = document.getElementById(`z${i}`);
+          
+          if (document.activeElement !== xInput) {
+            xInput.value = positions[i].x.toFixed(8);
+          }
+          if (document.activeElement !== yInput) {
+            yInput.value = positions[i].y.toFixed(8);
+          }
+          if (document.activeElement !== zInput) {
+            zInput.value = positions[i].z.toFixed(8);
+          }
+        }
+        
+        // Center of canvas
+        const cx = canvas.width / 2;
+        const cy = canvas.height / 2;
+        
+        // Draw trajectories
+        if (showTraj) {
+          const colors = [
+            document.getElementById('c0').value,
+            document.getElementById('c1').value,
+            document.getElementById('c2').value
+          ];
+          
+          trajectories.forEach((trail, i) => {
+            if (trail.length < 2) return;
+            
+            ctx.strokeStyle = colors[i] + '40'; // Add transparency
+            ctx.lineWidth = 3;
+            ctx.beginPath();
+            
+            trail.forEach((pt, j) => {
+              const x = cx + pt.x * scale;
+              const y = cy - pt.y * scale; // Flip Y coordinate
+              j === 0 ? ctx.moveTo(x, y) : ctx.lineTo(x, y);
+            });
+            
+            ctx.stroke();
+          });
+        }
+        
+        // Update trajectories
+        positions.forEach((pos, i) => {
+          trajectories[i].push({ x: pos.x, y: pos.y });
+          if (trajectories[i].length > trailLen) {
+            trajectories[i].shift();
+          }
+        });
+        
+        // Draw bodies
+        const colors = [
+          document.getElementById('c0').value,
+          document.getElementById('c1').value,
+          document.getElementById('c2').value
+        ];
+        
+        positions.forEach((pos, i) => {
+          const x = cx + pos.x * scale;
+          const y = cy - pos.y * scale;
+          
+          // Draw body - simple 2D circle with no shading
+          ctx.fillStyle = colors[i];
+          ctx.beginPath();
+          ctx.arc(x, y, 8, 0, 2 * Math.PI);
+          ctx.fill();
+        });
+        
+      } catch (err) {
+        console.error("Error in drawBodies:", err);
+      }
+    }
+    
     function loop() {
       if (!running) return;
       Module.stepSim(dt * speed);
       drawBodies();
       requestAnimationFrame(loop);
     }
-
-    document.getElementById('play-pause').onclick = () => {
-      running = !running;
-      if (running) loop();
+    
+    // UI event handlers
+    const playBtn = document.getElementById('play-pause');
+    const resetBtn = document.getElementById('reset');
+    const speedSlider = document.getElementById('speed');
+    const trailSlider = document.getElementById('trail');
+    const toggleBtn = document.getElementById('toggle-traj');
+    
+    // Initially disable controls
+    playBtn.disabled = true;
+    resetBtn.disabled = true;
+    
+    playBtn.onclick = () => {
+      if (!running) {
+        running = true;
+        playBtn.textContent = '❚❚';
+        loop();
+      } else {
+        running = false;
+        playBtn.textContent = '▶︎';
+      }
     };
-    document.getElementById('reset').onclick = () => {
+    
+    resetBtn.onclick = () => {
+      if (!Module.initialize) return;
+      
       Module.initialize();
+      resetTrails();
       drawBodies();
       running = false;
-      // reset input fields to initial figure-8 values
+      playBtn.textContent = '▶︎';
+      
+      // Reset mass values
+      document.getElementById('m0').value = '1';
+      document.getElementById('m1').value = '1';
+      document.getElementById('m2').value = '1';
+      
+      // Reset input values to figure-8 configuration
+      document.getElementById('x0').value = '-0.97000436';
+      document.getElementById('y0').value = '0.24308753';
+      document.getElementById('z0').value = '0';
+      document.getElementById('vx0').value = '0.466203685';
+      document.getElementById('vy0').value = '0.43236573';
+      document.getElementById('vz0').value = '0';
+      
+      document.getElementById('x1').value = '0.97000436';
+      document.getElementById('y1').value = '-0.24308753';
+      document.getElementById('z1').value = '0';
+      document.getElementById('vx1').value = '0.466203685';
+      document.getElementById('vy1').value = '0.43236573';
+      document.getElementById('vz1').value = '0';
+      
+      document.getElementById('x2').value = '0';
+      document.getElementById('y2').value = '0';
+      document.getElementById('z2').value = '0';
+      document.getElementById('vx2').value = '-0.93240737';
+      document.getElementById('vy2').value = '-0.86473146';
+      document.getElementById('vz2').value = '0';
     };
-    document.getElementById('speed').oninput = e => {
+    
+    speedSlider.oninput = (e) => {
       speed = parseFloat(e.target.value);
     };
-    document.getElementById('export').onclick = () => alert('Export not implemented');
-    document.getElementById('help').onclick   = () => alert('Help not implemented');
-
-    // Body parameter updates including positions and velocities
-    function updateBody(i) {
-      const m   = parseFloat(document.getElementById('m'+i).value) || 1;
-      const x   = parseFloat(document.getElementById('x'+i).value);
-      const y   = parseFloat(document.getElementById('y'+i).value);
-      const z   = parseFloat(document.getElementById('z'+i).value);
-      const vx  = parseFloat(document.getElementById('vx'+i).value);
-      const vy  = parseFloat(document.getElementById('vy'+i).value);
-      const vz  = parseFloat(document.getElementById('vz'+i).value);
-      // if any field is NaN, fallback to current sim values
-      const ptr = Module.getPosPtr();
-      const curX = Module.getValue(ptr + (i*3+0)*8, 'double');
-      const curY = Module.getValue(ptr + (i*3+1)*8, 'double');
-      const curZ = 0;
-      const newX = isNaN(x) ? curX : x;
-      const newY = isNaN(y) ? curY : y;
-      const newZ = isNaN(z) ? curZ : z;
-      const newVx = isNaN(vx) ? 0 : vx;
-      const newVy = isNaN(vy) ? 0 : vy;
-      const newVz = isNaN(vz) ? 0 : vz;
-      Module.setBody(i, m, newX, newY, newZ, newVx, newVy, newVz);
+    
+    trailSlider.oninput = (e) => {
+      trailLen = parseInt(e.target.value);
+      // Trim existing trails if needed
+      trajectories.forEach(trail => {
+        if (trail.length > trailLen) {
+          trail.splice(0, trail.length - trailLen);
+        }
+      });
+    };
+    
+    toggleBtn.onclick = () => {
+      showTraj = !showTraj;
+      toggleBtn.textContent = showTraj ? 'Hide Trajectories' : 'Show Trajectories';
+      drawBodies();
+    };
+    
+    // Body parameter controls
+    function updateBodies() {
+      if (!Module.setBody || !Module.getPosPtr) return;
+      for (let i = 0; i < 3; i++) {
+        const m = parseFloat(document.getElementById(`m${i}`).value) || 1;
+        const x = parseFloat(document.getElementById(`x${i}`).value) || 0;
+        const y = parseFloat(document.getElementById(`y${i}`).value) || 0;
+        const z = parseFloat(document.getElementById(`z${i}`).value) || 0;
+        const vx = parseFloat(document.getElementById(`vx${i}`).value) || 0;
+        const vy = parseFloat(document.getElementById(`vy${i}`).value) || 0;
+        const vz = parseFloat(document.getElementById(`vz${i}`).value) || 0;
+        
+        Module.setBody(i, m, x, y, z, vx, vy, vz);
+      }
+      resetTrails();
       drawBodies();
     }
-    ['m0','x0','y0','z0','vx0','vy0','vz0',
-     'm1','x1','y1','z1','vx1','vy1','vz1',
-     'm2','x2','y2','z2','vx2','vy2','vz2']
-    .forEach(id => {
-      document.getElementById(id).addEventListener('change', () => updateBody(id.match(/\d/)[0]));
-    });
-
-    // Preset and trajectory stubs
-    document.getElementById('toggle-traj').onclick = () => alert('Toggle trajectories not implemented');
-    document.getElementById('prev-preset').onclick = () => alert('Load previous preset');
-    document.getElementById('next-preset').onclick = () => alert('Load next preset');
-
-    // Tab switching
-    document.getElementById('tab-education').onclick = () => {
-      document.getElementById('tab-education').classList.add('active');
-      document.getElementById('tab-data').classList.remove('active');
-    };
-    document.getElementById('tab-data').onclick = () => {
-      document.getElementById('tab-data').classList.add('active');
-      document.getElementById('tab-education').classList.remove('active');
-    };
+    
+    // Set up all input handlers
+    for (let i = 0; i < 3; i++) {
+      ['m', 'x', 'y', 'z', 'vx', 'vy', 'vz'].forEach(param => {
+        const input = document.getElementById(`${param}${i}`);
+        if (input) {
+          input.addEventListener('change', updateBodies);
+          input.addEventListener('keyup', e => {
+            if (e.key === 'Enter') updateBodies();
+          });
+        }
+      });
+    }
   </script>
 </body>
 </html>
